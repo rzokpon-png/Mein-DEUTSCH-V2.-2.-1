@@ -7,11 +7,15 @@ const ECRANS_AVEC_NAV_BASSE = ["tableauDeBord", "monNiveau", "reviser", "menu"];
 function appEl() { return document.getElementById("app"); }
 
 function render(route) {
-  const fn = MD.ui.screens[route.screen];
-  const html = fn ? fn(route.params) : `<div class="screen center-screen"><p class="muted">Écran inconnu : ${route.screen}</p></div>`;
-  const avecNav = ECRANS_AVEC_NAV_BASSE.includes(route.screen);
-  appEl().innerHTML = html + (avecNav ? MD.ui.bottomNav(route.screen) : "");
-  bindEvents();
+  try {
+    const fn = MD.ui.screens[route.screen];
+    const html = fn ? fn(route.params) : `<div class="screen center-screen"><p class="muted">Écran inconnu : ${route.screen}</p></div>`;
+    const avecNav = ECRANS_AVEC_NAV_BASSE.includes(route.screen);
+    appEl().innerHTML = html + (avecNav ? MD.ui.bottomNav(route.screen) : "");
+    bindEvents();
+  } catch (e) {
+    afficherErreurFatale("Erreur pendant l'affichage de l'écran « " + route.screen + " »", e.stack || e.message);
+  }
 }
 
 function bindEvents() {
@@ -58,6 +62,29 @@ function onClick(e) {
 
     /* ---- mon niveau ---- */
     case "niveau-tab": niveauTab = btn.dataset.level; render(MD.core.router.current()); return;
+
+    /* ---- vocabulaire (étape 3) ---- */
+    case "vocab-flip": vocabSession.revele = !vocabSession.revele; render(MD.core.router.current()); return;
+    case "vocab-speak": {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(btn.dataset.text);
+        u.lang = "de-DE";
+        u.rate = 0.95;
+        window.speechSynthesis.speak(u);
+      }
+      bindEvents();
+      return;
+    }
+    case "vocab-rate": {
+      const q = parseInt(btn.dataset.q, 10);
+      const c = vocabSession.cartes[vocabSession.idx];
+      MD.modules.vocabulaire.noterCarte(c.cle, c.mot.id, vocabSession.niveau, c.theme.label, q);
+      vocabSession.revele = false;
+      vocabSession.idx++;
+      render(MD.core.router.current());
+      return;
+    }
 
     /* ---- dictionnaire personnel ---- */
     case "dico-ajouter": {
@@ -120,24 +147,40 @@ function finirOnboarding(name, level) {
   MD.core.router.goto("tableauDeBord", {}, { isBack: true });
 }
 
+function afficherErreurFatale(titre, details) {
+  const el = document.getElementById("app");
+  if (!el) return;
+  el.innerHTML = `
+    <div style="padding:24px;font-family:sans-serif;background:#2a1414;color:#f2caca;min-height:100vh;box-sizing:border-box;">
+      <h1 style="font-size:18px;">⚠️ ${titre}</h1>
+      <pre style="white-space:pre-wrap;background:#1a0d0d;padding:12px;border-radius:8px;font-size:12px;overflow-x:auto;">${(details || "").toString().replace(/</g, "&lt;")}</pre>
+      <p style="font-size:13px;margin-top:16px;">Envoie une capture de cet écran pour obtenir de l'aide.</p>
+    </div>`;
+}
+
+window.addEventListener("error", (e) => {
+  afficherErreurFatale("Erreur JavaScript détectée", `${e.message}\nFichier : ${e.filename}\nLigne : ${e.lineno}`);
+});
+
 /* ------------------------------------------------------------------ DÉMARRAGE */
 function demarrer() {
-  if (typeof MD === "undefined" || typeof MD.core === "undefined" || typeof MD.models === "undefined" || typeof MD.ui === "undefined") {
-    document.getElementById("app").innerHTML = `
-      <div style="padding:24px;font-family:sans-serif;background:#2a1414;color:#f2caca;min-height:100vh;box-sizing:border-box;">
-        <h1 style="font-size:18px;">⚠️ L'application n'a pas pu se charger</h1>
-        <p>Les fichiers JavaScript n'ont pas pu être lus depuis cet emplacement.</p>
-        <p><strong>Cause la plus fréquente sur mobile :</strong> ce fichier a été ouvert via un lien <code>content://</code> (aperçu depuis une appli de fichiers) plutôt qu'un vrai chemin de dossier.</p>
-        <p><strong>Solution recommandée :</strong> héberge ce dossier gratuitement (GitHub Pages ou Netlify Drop) et ouvre l'adresse https:// obtenue, plutôt que le fichier local.</p>
-      </div>`;
-    return;
+  try {
+    if (typeof MD === "undefined" || typeof MD.core === "undefined" || typeof MD.models === "undefined" || typeof MD.ui === "undefined") {
+      afficherErreurFatale(
+        "L'application n'a pas pu se charger",
+        "Un ou plusieurs fichiers JavaScript n'ont pas pu être lus depuis cet emplacement (MD non défini). Vérifie que tous les fichiers ont bien été envoyés, sans dossier manquant ni fichier renommé."
+      );
+      return;
+    }
+    MD.core.router.onChange(render);
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+    }
+    const profil = MD.models.profil.load();
+    MD.core.router.goto(profil.onboarded ? "tableauDeBord" : "onboarding", {}, { isBack: true });
+  } catch (e) {
+    afficherErreurFatale("Erreur au démarrage", e.stack || e.message);
   }
-  MD.core.router.onChange(render);
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
-  }
-  const profil = MD.models.profil.load();
-  MD.core.router.goto(profil.onboarded ? "tableauDeBord" : "onboarding", {}, { isBack: true });
 }
 
 window.addEventListener("DOMContentLoaded", demarrer);

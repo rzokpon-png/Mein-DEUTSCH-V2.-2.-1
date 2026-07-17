@@ -114,29 +114,54 @@ MD.ui.screens.tableauDeBord = function () {
 /* ------------------------------------------------------------------ MON NIVEAU */
 let niveauTab = null;
 
+/**
+ * Statut réel d'un module pour un niveau donné. Vocabulaire lit son
+ * contenu réellement chargé ; les autres modules n'ont pas encore de
+ * mécanisme de contenu (étapes 4 à 14 non commencées) donc restent
+ * "À venir" jusqu'à leur étape — ce statut sera piloté module par
+ * module à mesure qu'ils seront développés, sans rien changer ici.
+ */
+function statutModulePourNiveau(moduleId, niveau) {
+  if (moduleId === MD.MODULE_IDS.VOCABULAIRE) {
+    const contenu = MD.contenuVocabulaire && MD.contenuVocabulaire[niveau];
+    if (contenu && contenu.length > 0) return { label: "Terminé", tone: "sage" };
+    return { label: "À venir", tone: "muted" };
+  }
+  return { label: "À venir", tone: "muted" };
+}
+
 MD.ui.screens.monNiveau = function () {
   const profil = MD.models.profil.load();
   if (!niveauTab) niveauTab = MD.core.progression.currentLevel(profil);
 
+  const statuts = MD.ui.REGISTRE_MODULES.map((m) => statutModulePourNiveau(m.id, niveauTab));
+  const nbTermines = statuts.filter((s) => s.label === "Terminé").length;
+  const pourcentage = Math.round((nbTermines / MD.ui.REGISTRE_MODULES.length) * 100);
+
   return `<div class="screen">
     <div class="eyebrow" style="margin-bottom:4px">Mon parcours</div>
-    <h1 class="display" style="font-size:22px;margin:0 0 16px">Niveau ${niveauTab}</h1>
+    <h1 class="display" style="font-size:22px;margin:0 0 4px">Niveau ${niveauTab}</h1>
+    <p class="small muted" style="margin:0 0 14px">Tous les niveaux sont consultables — le contenu se complète progressivement.</p>
     <div class="tabs">
-      ${MD.LEVELS.map((l) => {
-        const unlocked = MD.core.progression.isLevelUnlocked(l, profil);
-        return `<button class="tab ${niveauTab === l ? "tab-active" : ""}" data-action="niveau-tab" data-level="${l}" ${unlocked ? "" : "disabled style='opacity:.4'"}>${l}${unlocked ? "" : " 🔒"}</button>`;
-      }).join("")}
+      ${MD.LEVELS.map((l) => `<button class="tab ${niveauTab === l ? "tab-active" : ""}" data-action="niveau-tab" data-level="${l}">${l}</button>`).join("")}
     </div>
-    ${MD.ui.REGISTRE_MODULES.map((m) => {
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="row-gap" style="margin-bottom:8px"><span>📊</span><strong class="small">Avancement réel du niveau ${niveauTab}</strong></div>
+      ${bar(pourcentage, pourcentage === 100 ? "#4F6F53" : "#C97D2C")}
+      <div class="small muted" style="margin-top:8px">${nbTermines} / ${MD.ui.REGISTRE_MODULES.length} modules terminés (${pourcentage}%)</div>
+    </div>
+
+    ${MD.ui.REGISTRE_MODULES.map((m, i) => {
       const estVocab = m.id === MD.MODULE_IDS.VOCABULAIRE;
+      const statut = statuts[i];
       const cible = estVocab ? "vocabulaireThemes" : "moduleVide";
-      const sousTitre = estVocab ? "" : `<div class="sous-titre">Contenu à l'étape ${m.etape} du plan de développement</div>`;
       return `
       <div class="module-card" data-action="nav" data-screen="${cible}" data-module="${m.id}" data-niveau="${niveauTab}">
         <span class="icon">${m.icone}</span>
         <div class="info">
           <div class="titre">${esc(m.label)}</div>
-          ${sousTitre}
+          <div class="sous-titre">${stamp(statut.label, statut.tone)}</div>
         </div>
         <span class="muted">→</span>
       </div>

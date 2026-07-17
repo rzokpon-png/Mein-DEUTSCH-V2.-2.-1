@@ -31,9 +31,16 @@ MD.core.progression = (function () {
     return profil.currentLevel || "A1";
   }
 
-  /** Un niveau est accessible s'il est <= au niveau courant (jamais reverrouillé). */
+  /**
+   * Tous les niveaux sont accessibles en permanence (changement demandé
+   * explicitement : l'utilisateur veut pouvoir consulter et tester le
+   * développement en cours de n'importe quel niveau, même non terminé).
+   * "currentLevel" reste néanmoins suivi dans le profil pour les
+   * statistiques et la prévision de réussite (niveaux réellement
+   * validés vs simplement consultés).
+   */
   function isLevelUnlocked(level, profil) {
-    return levelIndex(level) <= levelIndex(currentLevel(profil));
+    return true;
   }
 
   /** Vérifie si un niveau est validé (donc réviser uniquement, plus en apprentissage actif). */

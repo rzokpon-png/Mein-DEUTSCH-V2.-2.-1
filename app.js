@@ -159,6 +159,14 @@ function afficherErreurFatale(titre, details) {
 }
 
 window.addEventListener("error", (e) => {
+  /* Les navigateurs masquent volontairement les détails ("Script error.",
+     sans fichier ni ligne) pour les erreurs venant de scripts tiers
+     (polices, extensions, autofill...). Sans fichier ni ligne, on n'a
+     aucun diagnostic exploitable et ce n'est presque jamais notre code
+     — nos propres scripts, tous en même origine, donnent toujours ces
+     informations. On ignore donc ce cas précis pour éviter les fausses
+     alertes, et on garde l'alerte pour toute vraie erreur de l'app. */
+  if (!e.filename && !e.lineno) return;
   afficherErreurFatale("Erreur JavaScript détectée", `${e.message}\nFichier : ${e.filename}\nLigne : ${e.lineno}`);
 });
 

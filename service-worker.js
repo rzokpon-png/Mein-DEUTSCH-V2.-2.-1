@@ -1,4 +1,4 @@
-const CACHE_NAME = "mein-deutsch-v2-plat-shell-1";
+const CACHE_NAME = "mein-deutsch-v2-plat-shell-3";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json", "./style.css",
   "./icon-192.png", "./icon-512.png",
@@ -11,7 +11,9 @@ const APP_SHELL = [
   "./examens.model.js", "./pflege.model.js", "./vivreEnAllemagne.model.js",
   "./revision.model.js", "./dictionnairePersonnel.model.js", "./carnetVerbes.model.js",
   "./tableauDeBord.model.js",
-  "./registre-modules.js", "./screens.js", "./app.js",
+  "./registre-modules.js", "./screens.js",
+  "./vocabulaire.logic.js", "./contenu.A1.js",
+  "./app.js",
 ];
 
 self.addEventListener("install", (event) => {

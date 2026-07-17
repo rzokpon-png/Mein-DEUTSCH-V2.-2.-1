@@ -14,7 +14,11 @@ MD.models.vocabulaire = (function () {
    *   schemaVersion: number,
    *   themesParNiveau: {
    *     A1: [ { id, label, icone, mots: [
-   *         { id, mot, article, pluriel, traduction, prononciation, exemple, image }
+   *         { id, mot, article, pluriel, traduction, prononciation, exemple,
+   *           image: string|undefined }   // URL d'une photo réelle (libre de droits) ;
+   *                                       // absent tant qu'aucune photo n'a été
+   *                                       // curatée pour ce mot — l'interface
+   *                                       // affiche alors un visuel de remplacement
    *     ] } ],
    *     A2: [...], B1: [...], B2: [...]
    *   },

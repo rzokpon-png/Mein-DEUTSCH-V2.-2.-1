@@ -127,16 +127,21 @@ MD.ui.screens.monNiveau = function () {
         return `<button class="tab ${niveauTab === l ? "tab-active" : ""}" data-action="niveau-tab" data-level="${l}" ${unlocked ? "" : "disabled style='opacity:.4'"}>${l}${unlocked ? "" : " 🔒"}</button>`;
       }).join("")}
     </div>
-    ${MD.ui.REGISTRE_MODULES.map((m) => `
-      <div class="module-card" data-action="nav" data-screen="moduleVide" data-module="${m.id}" data-niveau="${niveauTab}">
+    ${MD.ui.REGISTRE_MODULES.map((m) => {
+      const estVocab = m.id === MD.MODULE_IDS.VOCABULAIRE;
+      const cible = estVocab ? "vocabulaireThemes" : "moduleVide";
+      const sousTitre = estVocab ? "" : `<div class="sous-titre">Contenu à l'étape ${m.etape} du plan de développement</div>`;
+      return `
+      <div class="module-card" data-action="nav" data-screen="${cible}" data-module="${m.id}" data-niveau="${niveauTab}">
         <span class="icon">${m.icone}</span>
         <div class="info">
           <div class="titre">${esc(m.label)}</div>
-          <div class="sous-titre">Contenu à l'étape ${m.etape} du plan de développement</div>
+          ${sousTitre}
         </div>
         <span class="muted">→</span>
       </div>
-    `).join("")}
+    `;
+    }).join("")}
   </div>`;
 };
 
@@ -152,6 +157,108 @@ MD.ui.screens.moduleVide = function (params) {
       <h2>${esc(titre)}${niveauTxt}</h2>
       <p>Ce module n'est pas encore développé. Sa structure de données existe déjà et a été testée (étape 1) ; son contenu et son fonctionnement arrivent à l'étape ${fiche ? fiche.etape : "?"} du plan validé.</p>
     </div>
+  </div>`;
+};
+
+/* ------------------------------------------------------------------ VOCABULAIRE — LISTE DES THÈMES (ÉTAPE 3) */
+MD.ui.screens.vocabulaireThemes = function (params) {
+  const niveau = params.niveau || MD.core.progression.currentLevel(MD.models.profil.load());
+  const themes = MD.modules.vocabulaire.themesAvecProgression(niveau);
+
+  if (themes.length === 0) {
+    return `<div class="screen">
+      ${topbar(`Vocabulaire · ${niveau}`)}
+      <div class="empty-state">
+        <div class="icon">📖</div>
+        <h2>Contenu à venir pour ${niveau}</h2>
+        <p>Les thèmes de ce niveau n'ont pas encore été rédigés.</p>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="screen">
+    ${topbar(`Vocabulaire · ${niveau}`)}
+    <p class="small muted" style="margin-bottom:14px">${themes.length} thèmes · ${themes.reduce((s, t) => s + t.totalMots, 0)} mots</p>
+    ${themes.map((t) => {
+      const pct = t.totalMots ? Math.round((t.motsAppris / t.totalMots) * 100) : 0;
+      return `
+      <div class="module-card" data-action="nav" data-screen="vocabulaireRevision" data-niveau="${niveau}" data-theme="${t.id}">
+        <span class="icon">${t.icone}</span>
+        <div class="info">
+          <div class="titre">${esc(t.label)}</div>
+          <div class="sous-titre">${t.motsAppris} / ${t.totalMots} mots appris ${t.motsDus > 0 ? `· ${t.motsDus} à réviser` : ""}</div>
+          ${bar(pct, pct === 100 ? "#4F6F53" : "#C97D2C")}
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`;
+};
+
+/* ------------------------------------------------------------------ VOCABULAIRE — SESSION DE RÉVISION (FLASHCARDS) */
+let vocabSession = null;
+
+MD.ui.screens.vocabulaireRevision = function (params) {
+  const { niveau, theme: themeId } = params;
+  if (!vocabSession || vocabSession._cle !== `${niveau}::${themeId}`) {
+    vocabSession = {
+      _cle: `${niveau}::${themeId}`,
+      niveau,
+      cartes: MD.modules.vocabulaire.sessionRevision(niveau, themeId, 12),
+      idx: 0,
+      revele: false,
+    };
+  }
+
+  if (vocabSession.cartes.length === 0) {
+    return `<div class="screen center-screen">
+      ${topbar("Vocabulaire")}
+      <div class="empty-state">
+        <div class="icon">✅</div>
+        <h2>Rien à réviser ici pour l'instant</h2>
+        <p>Tous les mots de ce thème sont à jour. Reviens plus tard.</p>
+      </div>
+    </div>`;
+  }
+
+  if (vocabSession.idx >= vocabSession.cartes.length) {
+    return `<div class="screen center-screen">
+      ${topbar("Vocabulaire")}
+      <div class="empty-state">
+        <div class="icon">🎉</div>
+        <h2>Session terminée</h2>
+        <p>${vocabSession.cartes.length} mot(s) révisé(s) dans ce thème.</p>
+      </div>
+      <button class="btn-primary" data-action="back">Retour aux thèmes</button>
+    </div>`;
+  }
+
+  const c = vocabSession.cartes[vocabSession.idx];
+  const imageBloc = c.mot.image
+    ? `<img src="${esc(c.mot.image)}" alt="${esc(c.mot.mot)}" loading="lazy"
+         style="width:100%;height:160px;object-fit:cover;border-radius:12px;margin-bottom:14px;background:var(--paper-deep)"
+         onerror="this.replaceWith(Object.assign(document.createElement('div'), {innerHTML:'🖼️', style:'font-size:40px;text-align:center;padding:40px 0;background:var(--paper-deep);border-radius:12px;margin-bottom:14px'}))" />`
+    : `<div style="font-size:40px;text-align:center;padding:40px 0;background:var(--paper-deep);border-radius:12px;margin-bottom:14px;opacity:.5">${esc(c.theme.icone)}</div>`;
+  return `<div class="screen">
+    ${topbar(c.theme.label)}
+    <div class="mono muted small">${vocabSession.idx + 1} / ${vocabSession.cartes.length}</div>
+    ${bar((vocabSession.idx / vocabSession.cartes.length) * 100, "#C97D2C")}
+    <div class="module-card" data-action="vocab-flip" style="justify-content:center;flex-direction:column;text-align:center;padding:24px 16px;margin-top:18px;cursor:pointer">
+      ${imageBloc}
+      <div class="display" style="font-size:26px">${esc(c.mot.mot)}</div>
+      ${vocabSession.revele ? `
+        <div style="margin-top:12px;color:var(--ochre-deep);font-weight:600;font-size:17px">${esc(c.mot.fr)}</div>
+        ${c.mot.pl ? `<div class="small muted" style="margin-top:6px">Pluriel : ${esc(c.mot.pl)}</div>` : ""}
+        <div class="mono small" style="margin-top:10px;color:var(--ink-soft)">${esc(c.mot.ex)}</div>
+      ` : `<div class="small muted" style="margin-top:10px">Touche pour révéler</div>`}
+    </div>
+    <button class="btn-option" data-action="vocab-speak" data-text="${esc(c.mot.mot + '. ' + c.mot.ex)}" style="text-align:center">🔊 Écouter</button>
+    ${vocabSession.revele ? `
+      <div class="grid-2" style="margin-top:14px;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <button data-action="vocab-rate" data-q="0" style="padding:12px 4px;border-radius:10px;border:none;background:var(--rust);color:var(--white);font-weight:600;font-size:13px">Raté</button>
+        <button data-action="vocab-rate" data-q="1" style="padding:12px 4px;border-radius:10px;border:none;background:var(--ochre);color:var(--white);font-weight:600;font-size:13px">Difficile</button>
+        <button data-action="vocab-rate" data-q="2" style="padding:12px 4px;border-radius:10px;border:none;background:var(--sage);color:var(--white);font-weight:600;font-size:13px">Facile</button>
+      </div>
+    ` : ""}
   </div>`;
 };
 

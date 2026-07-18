@@ -115,17 +115,22 @@ MD.ui.screens.tableauDeBord = function () {
 let niveauTab = null;
 
 /**
- * Statut réel d'un module pour un niveau donné. Vocabulaire lit son
- * contenu réellement chargé ; les autres modules n'ont pas encore de
- * mécanisme de contenu (étapes 4 à 14 non commencées) donc restent
- * "À venir" jusqu'à leur étape — ce statut sera piloté module par
- * module à mesure qu'ils seront développés, sans rien changer ici.
+ * Statut réel d'un module pour un niveau donné. Vocabulaire compare
+ * son contenu réellement chargé au nombre de thèmes cible du cahier
+ * des charges v2.0, pour distinguer un niveau complet d'un niveau en
+ * cours de rédaction. Les autres modules n'ont pas encore de contenu
+ * (étapes 4 à 14 non commencées) donc restent "À venir".
  */
+const OBJECTIF_THEMES_VOCABULAIRE = { A1: 14, A2: 14, B1: 14, B2: 12 };
+
 function statutModulePourNiveau(moduleId, niveau) {
   if (moduleId === MD.MODULE_IDS.VOCABULAIRE) {
     const contenu = MD.contenuVocabulaire && MD.contenuVocabulaire[niveau];
-    if (contenu && contenu.length > 0) return { label: "Terminé", tone: "sage" };
-    return { label: "À venir", tone: "muted" };
+    const nb = contenu ? contenu.length : 0;
+    const cible = OBJECTIF_THEMES_VOCABULAIRE[niveau];
+    if (nb === 0) return { label: "À venir", tone: "muted" };
+    if (nb >= cible) return { label: "Terminé", tone: "sage" };
+    return { label: `En développement (${nb}/${cible})`, tone: "ochre" };
   }
   return { label: "À venir", tone: "muted" };
 }
@@ -135,8 +140,17 @@ MD.ui.screens.monNiveau = function () {
   if (!niveauTab) niveauTab = MD.core.progression.currentLevel(profil);
 
   const statuts = MD.ui.REGISTRE_MODULES.map((m) => statutModulePourNiveau(m.id, niveauTab));
+  const fractions = MD.ui.REGISTRE_MODULES.map((m) => {
+    if (m.id === MD.MODULE_IDS.VOCABULAIRE) {
+      const contenu = MD.contenuVocabulaire && MD.contenuVocabulaire[niveauTab];
+      const nb = contenu ? contenu.length : 0;
+      const cible = OBJECTIF_THEMES_VOCABULAIRE[niveauTab];
+      return Math.min(1, nb / cible);
+    }
+    return 0;
+  });
   const nbTermines = statuts.filter((s) => s.label === "Terminé").length;
-  const pourcentage = Math.round((nbTermines / MD.ui.REGISTRE_MODULES.length) * 100);
+  const pourcentage = Math.round((fractions.reduce((a, b) => a + b, 0) / MD.ui.REGISTRE_MODULES.length) * 100);
 
   return `<div class="screen">
     <div class="eyebrow" style="margin-bottom:4px">Mon parcours</div>

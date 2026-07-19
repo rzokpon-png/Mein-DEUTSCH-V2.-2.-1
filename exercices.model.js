@@ -4,6 +4,7 @@
    Sprechen et Pflege.
 ========================================================== */
 
+MD.models = MD.models || {};
 MD.models.exercices = {
 
  types: {

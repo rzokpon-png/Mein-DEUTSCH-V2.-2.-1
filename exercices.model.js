@@ -6,16 +6,21 @@
 
 MD.models.exercices = {
 
-  types: {
+ types: {
     QCM: "qcm",
     TRADUCTION: "traduction",
     PHRASE: "phrase",
+    EXPRESSION: "expression",
     DIALOGUE: "dialogue",
     ORAL: "oral",
     ECOUTE: "ecoute",
     TEXTE: "texte",
-    ECRIT: "ecrit"
-  },
+    ECRIT: "ecrit",
+    IMAGE: "image",
+    OPINION: "opinion",
+    COMPARAISON: "comparaison",
+    ARGUMENTATION: "argumentation"
+},
 
   creerSession(module, niveau, questions) {
     return {

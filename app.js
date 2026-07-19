@@ -64,17 +64,7 @@ function onClick(e) {
     case "niveau-tab": niveauTab = btn.dataset.level; render(MD.core.router.current()); return;
 
     /* ---- vocabulaire (étape 3) ---- */
-    case "vocab-flip": 
-  vocabSession.revele = !vocabSession.revele; 
-  render(MD.core.router.current()); 
-  return;
-
-case "vocab-exercice": {
-  MD.core.router.goto("vocabulaireExercice", {
-    niveau: btn.dataset.niveau
-  });
-  return;
-}
+    case "vocab-flip": vocabSession.revele = !vocabSession.revele; render(MD.core.router.current()); return;
     case "vocab-speak": {
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
@@ -169,14 +159,6 @@ function afficherErreurFatale(titre, details) {
 }
 
 window.addEventListener("error", (e) => {
-  /* Les navigateurs masquent volontairement les détails ("Script error.",
-     sans fichier ni ligne) pour les erreurs venant de scripts tiers
-     (polices, extensions, autofill...). Sans fichier ni ligne, on n'a
-     aucun diagnostic exploitable et ce n'est presque jamais notre code
-     — nos propres scripts, tous en même origine, donnent toujours ces
-     informations. On ignore donc ce cas précis pour éviter les fausses
-     alertes, et on garde l'alerte pour toute vraie erreur de l'app. */
-  if (!e.filename && !e.lineno) return;
   afficherErreurFatale("Erreur JavaScript détectée", `${e.message}\nFichier : ${e.filename}\nLigne : ${e.lineno}`);
 });
 

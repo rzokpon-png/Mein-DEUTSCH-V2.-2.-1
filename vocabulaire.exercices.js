@@ -62,9 +62,30 @@ MD.modules.vocabulaireExercices = (function () {
   }
 
 
+  function creerSessionTraduction(niveau, themeId) {
+
+    const questions = [];
+
+    for (let i = 0; i < 10; i++) {
+      const exercice = exerciceTraduction(niveau, themeId);
+
+      if (exercice) {
+        questions.push(exercice);
+      }
+    }
+
+    return MD.models.exercices.creerSession(
+      "vocabulaire",
+      niveau,
+      questions
+    );
+  }
+
+
   return {
     exerciceArticle,
-    exerciceTraduction
+    exerciceTraduction,
+    creerSessionTraduction
   };
 
 })();

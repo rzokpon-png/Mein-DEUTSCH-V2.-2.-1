@@ -1,10 +1,10 @@
-const CACHE_NAME = "mein-deutsch-v2-plat-shell-9";
+const CACHE_NAME = "mein-deutsch-v2-plat-shell-10";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json", "./style.css",
   "./icon-192.png", "./icon-512.png",
   "./constants.js", "./storage.js", "./srs.js",
   "./progression.js", "./stats.js", "./backup.js", "./router.js",
-  "./profil.model.js", "./vocabulaire.model.js", "./expressions.model.js",
+  "./profil.model.js", "./vocabulaire.model.js", "./vocabulaire.exercices.js", "./expressions.model.js",
   "./phrasesModeles.model.js", "./grammaire.model.js", "./conjugaison.model.js",
   "./phonetique.model.js", "./hoeren.model.js", "./lesen.model.js",
   "./schreiben.model.js", "./sprechen.model.js", "./bibliothequeDialogues.model.js",

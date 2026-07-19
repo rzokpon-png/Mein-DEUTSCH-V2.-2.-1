@@ -12,15 +12,20 @@ MD.modules.vocabulaireExercices = (function () {
   }
 
   function tousLesMots(niveau, themeId) {
-  const data = MD.modules.vocabulaire.assurerContenuCharge(niveau);
+    const data = MD.modules.vocabulaire.assurerContenuCharge(niveau);
 
-  const themes = data.themesParNiveau[niveau] || [];
+    const themes = data.themesParNiveau[niveau] || [];
 
-  const theme = themes.find(t => t.id === themeId);
+    if (!themeId) {
+      // Aucun thème précisé : on pioche parmi tous les mots du niveau
+      return themes.flatMap(t => t.mots || []);
+    }
 
-  if (!theme) return [];
+    const theme = themes.find(t => t.id === themeId);
 
-  return theme.mots || [];
+    if (!theme) return [];
+
+    return theme.mots || [];
   }
 
 
@@ -73,7 +78,7 @@ MD.modules.vocabulaireExercices = (function () {
         questions.push(exercice);
       }
     }
-console.log("TEST exercices :", MD.models.exercices);
+
     return MD.models.exercices.creerSession(
       "vocabulaire",
       niveau,

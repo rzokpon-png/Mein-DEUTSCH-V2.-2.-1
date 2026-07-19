@@ -73,7 +73,7 @@ MD.modules.vocabulaireExercices = (function () {
         questions.push(exercice);
       }
     }
-
+console.log("TEST exercices :", MD.models.exercices);
     return MD.models.exercices.creerSession(
       "vocabulaire",
       niveau,

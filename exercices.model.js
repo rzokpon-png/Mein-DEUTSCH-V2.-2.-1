@@ -60,7 +60,7 @@ MD.models.exercices = {
       session.termine = true;
     }
 
-    return session;
+       return session;
   },
 
   progression(session) {
@@ -72,3 +72,5 @@ MD.models.exercices = {
   }
 
 };
+
+console.log("EXERCICES MODEL CHARGE", MD.models.exercices); 

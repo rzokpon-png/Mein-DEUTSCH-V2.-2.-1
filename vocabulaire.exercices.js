@@ -12,15 +12,15 @@ MD.modules.vocabulaireExercices = (function () {
   }
 
   function tousLesMots(niveau, themeId) {
-    const data = MD.models.vocabulaire.load();
+  const data = MD.modules.vocabulaire.assurerContenuCharge(niveau);
 
-    const themes = data.themesParNiveau[niveau] || [];
+  const themes = data.themesParNiveau[niveau] || [];
 
-    const theme = themes.find(t => t.id === themeId);
+  const theme = themes.find(t => t.id === themeId);
 
-    if (!theme) return [];
+  if (!theme) return [];
 
-    return theme.mots || [];
+  return theme.mots || [];
   }
 
 

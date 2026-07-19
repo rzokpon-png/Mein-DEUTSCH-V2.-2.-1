@@ -18,12 +18,29 @@ MD.modules.vocabulaire = (function () {
    */
   function assurerContenuCharge(niveau) {
     const data = MD.models.vocabulaire.load();
-    const dejaCharge = (data.themesParNiveau[niveau] || []).length > 0;
     const contenuDisponible = MD.contenuVocabulaire && MD.contenuVocabulaire[niveau];
-    if (!dejaCharge && contenuDisponible) {
-      data.themesParNiveau[niveau] = contenuDisponible;
-      MD.models.vocabulaire.save(data);
+
+    if (contenuDisponible) {
+      const anciensThemes = data.themesParNiveau[niveau] || [];
+
+      const idsExistants = new Set(
+        anciensThemes.map((theme) => theme.id)
+      );
+
+      const nouveauxThemes = contenuDisponible.filter(
+        (theme) => !idsExistants.has(theme.id)
+      );
+
+      if (nouveauxThemes.length > 0) {
+        data.themesParNiveau[niveau] = [
+          ...anciensThemes,
+          ...nouveauxThemes
+        ];
+
+        MD.models.vocabulaire.save(data);
+      }
     }
+
     return MD.models.vocabulaire.load();
   }
 

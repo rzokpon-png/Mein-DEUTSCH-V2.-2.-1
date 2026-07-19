@@ -492,3 +492,50 @@ MD.ui.bottomNav = function (screenActif) {
     `).join("")}
   </div>`;
 };
+
+/* ------------------------------------------------------------------
+   VOCABULAIRE — EXERCICES
+------------------------------------------------------------------ */
+
+MD.ui.screens.vocabulaireExercices = function (params) {
+  const niveau = params.niveau || "A1";
+
+  return `
+  <div class="screen">
+    ${topbar(`Exercices vocabulaire · ${niveau}`)}
+
+    <div class="card">
+      <h2>🧠 Entraînement vocabulaire</h2>
+
+      <p class="small muted">
+        Apprendre pour parler dans la vie réelle,
+        pas seulement pour l'examen.
+      </p>
+
+      <div class="module-card">
+        <span class="icon">🇩🇪</span>
+        <div class="info">
+          <div class="titre">Traduction</div>
+          <div class="sous-titre">Allemand → Français</div>
+        </div>
+      </div>
+
+      <div class="module-card">
+        <span class="icon">💬</span>
+        <div class="info">
+          <div class="titre">Phrases du quotidien</div>
+          <div class="sous-titre">Utiliser les mots dans une conversation</div>
+        </div>
+      </div>
+
+      <div class="module-card">
+        <span class="icon">🗣️</span>
+        <div class="info">
+          <div class="titre">Expression orale</div>
+          <div class="sous-titre">Créer tes propres phrases</div>
+        </div>
+      </div>
+
+    </div>
+  </div>`;
+};

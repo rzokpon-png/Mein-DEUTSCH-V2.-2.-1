@@ -64,7 +64,17 @@ function onClick(e) {
     case "niveau-tab": niveauTab = btn.dataset.level; render(MD.core.router.current()); return;
 
     /* ---- vocabulaire (étape 3) ---- */
-    case "vocab-flip": vocabSession.revele = !vocabSession.revele; render(MD.core.router.current()); return;
+    case "vocab-flip": 
+  vocabSession.revele = !vocabSession.revele; 
+  render(MD.core.router.current()); 
+  return;
+
+case "vocab-exercice": {
+  MD.core.router.goto("vocabulaireExercices", {
+    niveau: btn.dataset.niveau
+  });
+  return;
+}
     case "vocab-speak": {
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();

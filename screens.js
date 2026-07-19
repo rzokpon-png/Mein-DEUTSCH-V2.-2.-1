@@ -217,7 +217,11 @@ MD.ui.screens.vocabulaireThemes = function (params) {
 
   return `<div class="screen">
     ${topbar(`Vocabulaire · ${niveau}`)}
-    <p class="small muted" style="margin-bottom:14px">${themes.length} thèmes · ${themes.reduce((s, t) => s + t.totalMots, 0)} mots</p>
+    <p class="small muted" style="margin-bottom:14px">${themes.length} thèmes · ${themes.reduce((s, t) => s + t.totalMots, 0)} mots</p> 
+    
+    <button class="btn-primary" data-action="vocab-exercice" data-niveau="${niveau}">
+  📝 Faire un exercice
+</button>
     ${themes.map((t) => {
       const pct = t.totalMots ? Math.round((t.motsAppris / t.totalMots) * 100) : 0;
       return `

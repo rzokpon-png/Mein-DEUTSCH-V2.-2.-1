@@ -305,6 +305,86 @@ MD.ui.screens.vocabulaireRevision = function (params) {
   </div>`;
 };
 
+/* ------------------------------------------------------------------
+   VOCABULAIRE — SESSION EXERCICES
+------------------------------------------------------------------ */
+
+let exerciceSession = null;
+
+MD.ui.screens.vocabulaireExercice = function (params) {
+
+  const niveau = params.niveau || "A1";
+
+  if (!exerciceSession) {
+    exerciceSession = MD.modules.vocabulaireExercices.creerSessionTraduction(
+      niveau,
+      null
+    );
+  }
+
+
+  if (!exerciceSession || exerciceSession.questions.length === 0) {
+
+    return `
+    <div class="screen">
+      ${topbar("Exercices vocabulaire")}
+      <div class="empty-state">
+        <div class="icon">📚</div>
+        <h2>Aucun exercice disponible</h2>
+        <p>Le contenu d'exercices sera ajouté progressivement.</p>
+      </div>
+    </div>
+    `;
+  }
+
+
+  const question =
+    MD.models.exercices.obtenirQuestion(exerciceSession);
+
+
+  if (!question) {
+
+    return `
+    <div class="screen">
+      ${topbar("Résultat")}
+      <div class="empty-state">
+        <div class="icon">🎉</div>
+        <h2>Session terminée</h2>
+        <p>Score : ${exerciceSession.score}/${exerciceSession.questions.length}</p>
+      </div>
+    </div>
+    `;
+  }
+
+
+  return `
+  <div class="screen">
+
+    ${topbar("Exercice vocabulaire")}
+
+    <div class="card">
+
+      <div class="small muted">
+        Question ${exerciceSession.index + 1}/${exerciceSession.questions.length}
+      </div>
+
+      <h2>${esc(question.question)}</h2>
+
+      ${question.reponses.map(rep => `
+        <button class="btn-option"
+        data-action="reponse-exercice"
+        data-reponse="${esc(rep)}">
+          ${esc(rep)}
+        </button>
+      `).join("")}
+
+    </div>
+
+  </div>
+  `;
+
+};
+
 /* ------------------------------------------------------------------ RÉVISER */
 MD.ui.screens.reviser = function () {
   const snapshot = MD.core.storage.getAll();

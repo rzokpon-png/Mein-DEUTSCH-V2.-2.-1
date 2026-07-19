@@ -1,4 +1,4 @@
-const CACHE_NAME = "mein-deutsch-v2-plat-shell-17";
+const CACHE_NAME = "mein-deutsch-v2-plat-shell-18";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json", "./style.css",
   "./icon-192.png", "./icon-512.png",

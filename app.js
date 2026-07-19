@@ -70,7 +70,7 @@ function onClick(e) {
   return;
 
 case "vocab-exercice": {
-  MD.core.router.goto("vocabulaireExercices", {
+  MD.core.router.goto("vocabulaireExercice", {
     niveau: btn.dataset.niveau
   });
   return;
